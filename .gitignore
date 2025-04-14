@@ -27,3 +27,4 @@ logs/
 # MacOS generated file
 .DS_STORE
 
+.vercel
