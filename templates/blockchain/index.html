@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Blockchain Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-12 text-center">
+    <h1>Blockchain Node</h1>
+    <hr />
+  </div>
+
+  <div class="col-lg-12">
+    <div class="row">
+      <div class="col-lg-6">
+        <h2>Add transactions</h2>
+        <form id="transaction_form">
+          <div class="mb-3">
+            <label for="sender_address" class="form-label">Sender Address:</label>
+            <input type="text" class="form-control" id="sender_address" name="sender_address" />
+          </div>
+          <div class="mb-3">
+            <label for="recipient_address" class="form-label">Recipient Address:</label>
+            <input type="text" class="form-control" id="recipient_address" name="recipient_address" />
+          </div>
+          <div class="mb-3">
+            <label for="amount" class="form-label">Amount:</label>
+            <input type="text" class="form-control" id="amount" name="amount" />
+          </div>
+          <div class="mb-3">
+            <label for="signature" class="form-label">Signature:</label>
+            <input type="text" class="form-control" id="signature" name="signature" />
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+
+      <div class="col-lg-6">
+        <h2>Blockchain details</h2>
+        <div class="mb-3">
+          <div>
+            <h2>Mined Blocks</h2>
+            <table id="blocks_table" class="table table-striped">
+              <thead>
+                <tr>
+                  <th scope="col" style="width: 5%">Index</th>
+                  <th scope="col" style="width: 15%">Timestamp</th>
+                  <th scope="col" style="width: 60%">Transactions</th>
+                  <th scope="col" style="width: 20%">Previous Hash</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <hr />
+          <div id="request_buttons" style="display: flex; gap: 10px">
+            <button id="refresh_blockchain" class="btn btn-primary">
+              <i class="fa fa-refresh" aria-hidden="true"></i> Refresh
+            </button>
+            <button id="blockchain_button" class="btn btn-primary">Get Chain</button>
+            <button id="mine_button" class="btn btn-primary">
+              <i class="fa fa-inbox" aria-hidden="true"></i> Mine
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-12">
+    <h2>Pending Transactions</h2>
+    <div class="mb-3">
+      <table id="transactions_table" class="table table-striped">
+        <thead>
+          <tr>
+            <th scope="col" style="width: 40%">Sender</th>
+            <th scope="col" style="width: 40%">Recipient</th>
+            <th scope="col" style="width: 20%">Amount</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <hr />
+      <div id="transactions_buttons">
+        <button id="load_transactions" class="btn btn-primary">
+          <i class="fa fa-cubes" aria-hidden="true"></i> Transactions
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  $(function() {
+    $.ajax({
+      url: "/blockchain/chain",
+      type: "GET",
+      success: function(response) {
+        let blocks = [];
+        const chain = response["chain"];
+        let transactions = [];
+        for (let i = 0; i < chain.length; i++) {
+          var block = chain[i];
+          let date = new Date(block.timestamp * 1000);
+          blocks.push([
+            block.index,
+            date.toLocaleString(),
+            block.transactions.length,
+            block.previous_hash,
+          ]);
+        }
+        console.log(blocks);
+        for (let i = 0; i < blocks.length; i++) {
+          let row = $("<tr>");
+          let index = $("<td>").text(blocks[i][0]);
+          let timestamp = $("<td>").text(blocks[i][1]);
+          let tx_count = $("<td>").text(blocks[i][2] + " transactions");
+          let prev_hash = $("<td>").text(blocks[i][3]);
+          row.append(index, timestamp, tx_count, prev_hash);
+          $("#blocks_table tbody").append(row);
+        }
+      },
+      error: function(error) {
+        console.log(error);
+      },
+    });
+
+    $.ajax({
+      url: "/blockchain/transactions/get",
+      type: "GET",
+      success: function(response) {
+        let transactions = response["transactions"];
+        for (let i = 0; i < transactions.length; i++) {
+          let row = $("<tr>");
+          let sender = $("<td>").text(transactions[i].sender_address);
+          let recipient = $("<td>").text(transactions[i].recipient_address);
+          let amount = $("<td>").text(transactions[i].value);
+          row.append(sender, recipient, amount);
+          $("#transactions_table tbody").append(row);
+        }
+      },
+      error: function(error) {
+        console.log(error);
+      },
+    });
+
+    $("#blockchain_button").click(function() {
+      $.ajax({
+        url: "/blockchain/chain",
+        type: "GET",
+        success: function(response) {
+          document.getElementById("blocks_table").innerHTML = "";
+          let blocks = [];
+          const chain = response["chain"];
+          let transactions = [];
+          for (let i = 0; i < chain.length; i++) {
+            var block = chain[i];
+            let date = new Date(block.timestamp * 1000);
+            blocks.push([
+              block.index,
+              date.toLocaleString(),
+              block.transactions.length,
+              block.previous_hash,
+            ]);
+          }
+          console.log(blocks);
+          for (let i = 0; i < blocks.length; i++) {
+            let row = $("<tr>");
+            let index = $("<td>").text(blocks[i][0]);
+            let timestamp = $("<td>").text(blocks[i][1]);
+            let tx_count = $("<td>").text(blocks[i][2] + " transactions");
+            let prev_hash = $("<td>").text(blocks[i][3]);
+            row.append(index, timestamp, tx_count, prev_hash);
+            $("#blocks_table tbody").append(row);
+          }
+        },
+        error: function(error) {
+          console.log(error);
+        },
+      });
+    });
+
+    $("#mine_button").click(function() {
+      $.ajax({
+        url: "/blockchain/mine",
+        type: "GET",
+        success: function(data) {
+          alert("Block mined!");
+          window.location.reload();
+        },
+        error: function(error) {
+          console.log(error);
+        },
+      });
+    });
+
+    $("#refresh_blockchain").click(function() {
+      window.location.reload();
+    });
+
+    $("#load_transactions").click(function() {
+      $.ajax({
+        url: "/blockchain/transactions/get",
+        type: "GET",
+        success: function(response) {
+          document.getElementById("transactions_table").innerHTML = "";
+          let transactions = response["transactions"];
+          $("#transactions_table").append(
+            "<thead><tr><th scope='col' style='width: 40%'>Sender</th><th scope='col' style='width: 40%'>Recipient</th><th scope='col' style='width: 20%'>Amount</th></tr></thead>"
+          );
+          for (let i = 0; i < transactions.length; i++) {
+            let row = $("<tr>");
+            let sender = $("<td>").text(transactions[i].sender_address);
+            let recipient = $("<td>").text(transactions[i].recipient_address);
+            let amount = $("<td>").text(transactions[i].value);
+            row.append(sender, recipient, amount);
+            $("#transactions_table").append(row);
+          }
+        },
+        error: function(error) {
+          console.log(error);
+        },
+      });
+    });
+    
+    $("#transaction_form").submit(function(e) {
+      e.preventDefault();
+      
+      $.ajax({
+        url: "/blockchain/transactions/new",
+        type: "POST",
+        data: {
+          sender_address: $("#sender_address").val(),
+          recipient_address: $("#recipient_address").val(),
+          amount: $("#amount").val(),
+          signature: $("#signature").val()
+        },
+        success: function(response) {
+          alert(response.message);
+          $("#transaction_form")[0].reset();
+          // Reload transactions
+          $("#load_transactions").click();
+        },
+        error: function(error) {
+          console.log(error);
+          alert("Error: " + error.responseText);
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}
