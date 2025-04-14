@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Wallet Client Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-12 text-center">
+    <h1>Wallet Client</h1>
+    <hr />
+  </div>
+
+  <div class="col-lg-12">
+    <div class="row">
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-header bg-success text-white">
+            <h4>Generate New Wallet</h4>
+          </div>
+          <div class="card-body">
+            <p>Create a new wallet with public and private keys.</p>
+            <button id="generate_wallet" class="btn btn-success">
+              <i class="fa fa-plus-circle" aria-hidden="true"></i> Generate New Wallet
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h4>Actions</h4>
+          </div>
+          <div class="card-body">
+            <p>Interact with your blockchain wallet</p>
+            <a href="/client/make/transaction" class="btn btn-primary mb-2">
+              <i class="fa fa-paper-plane" aria-hidden="true"></i> Make a Transaction
+            </a>
+            <a href="/client/view/transactions" class="btn btn-info">
+              <i class="fa fa-list" aria-hidden="true"></i> View Transactions
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-12 mt-4" id="wallet_generator" style="display: none;">
+    <div class="card">
+      <div class="card-header bg-warning">
+        <h4>Your New Wallet</h4>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-danger">
+          <strong>Warning!</strong> Save these keys immediately. They will not be shown again.
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label"><strong>Public Key (Share this address):</strong></label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="public_key" readonly>
+            <button class="btn btn-outline-secondary" type="button" id="copy_public_key">
+              <i class="fa fa-copy"></i> Copy
+            </button>
+          </div>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label"><strong>Private Key (KEEP THIS SECRET!):</strong></label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="private_key" readonly>
+            <button class="btn btn-outline-secondary" type="button" id="copy_private_key">
+              <i class="fa fa-copy"></i> Copy
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  $(function() {
+    $("#generate_wallet").click(function() {
+      $.ajax({
+        url: "/client/wallet/new",
+        type: "GET",
+        success: function(response) {
+          $("#public_key").val(response.public_key);
+          $("#private_key").val(response.private_key);
+          $("#wallet_generator").show();
+        },
+        error: function(error) {
+          console.log(error);
+        }
+      });
+    });
+
+    $("#copy_public_key").click(function() {
+      $("#public_key").select();
+      document.execCommand("copy");
+      alert("Public key copied to clipboard!");
+    });
+
+    $("#copy_private_key").click(function() {
+      $("#private_key").select();
+      document.execCommand("copy");
+      alert("Private key copied to clipboard!");
+    });
+  });
+</script>
+{% endblock %}

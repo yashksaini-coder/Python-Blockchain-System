@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Blockchain System - Home{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12 text-center mb-5">
+    <h1>Welcome to the Blockchain System</h1>
+    <p class="lead">A complete blockchain solution with mining and transaction capabilities</p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6 mb-4">
+    <div class="card h-100">
+      <div class="card-header bg-primary text-white">
+        <h3>Blockchain Node</h3>
+      </div>
+      <div class="card-body">
+        <p>Access the blockchain node to view the blockchain, configure nodes, and mine new blocks.</p>
+        <ul>
+          <li>View the current blockchain</li>
+          <li>Mine new blocks</li>
+          <li>Configure blockchain nodes</li>
+          <li>Resolve consensus issues</li>
+        </ul>
+      </div>
+      <div class="card-footer">
+        <a href="/blockchain" class="btn btn-primary">Go to Blockchain Dashboard</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6 mb-4">
+    <div class="card h-100">
+      <div class="card-header bg-success text-white">
+        <h3>Wallet Client</h3>
+      </div>
+      <div class="card-body">
+        <p>Access the wallet client to create new wallets and make transactions on the blockchain.</p>
+        <ul>
+          <li>Create new wallets</li>
+          <li>Generate and sign transactions</li>
+          <li>View pending transactions</li>
+          <li>Securely transfer coins</li>
+        </ul>
+      </div>
+      <div class="card-footer">
+        <a href="/client" class="btn btn-success">Go to Wallet Dashboard</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-info text-white">
+        <h3>System Information</h3>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h5>Blockchain Stats</h5>
+            <div id="blockchain-stats">
+              <p>Chain Length: <span id="chain-length">Loading...</span></p>
+              <p>Active Nodes: <span id="active-nodes">Loading...</span></p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <h5>Transaction Pool</h5>
+            <div id="transaction-pool">
+              <p>Pending Transactions: <span id="pending-transactions">Loading...</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  // Fetch blockchain data when page loads
+  $(document).ready(function() {
+    // Get chain data
+    $.ajax({
+      url: '/blockchain/chain',
+      type: 'GET',
+      success: function(response) {
+        $('#chain-length').text(response.length);
+      },
+      error: function(error) {
+        $('#chain-length').text('Error loading');
+        console.log(error);
+      }
+    });
+    
+    // Get nodes data
+    $.ajax({
+      url: '/blockchain/nodes/get',
+      type: 'GET',
+      success: function(response) {
+        $('#active-nodes').text(response.nodes.length);
+      },
+      error: function(error) {
+        $('#active-nodes').text('Error loading');
+        console.log(error);
+      }
+    });
+    
+    // Get transactions data
+    $.ajax({
+      url: '/blockchain/transactions/get',
+      type: 'GET',
+      success: function(response) {
+        $('#pending-transactions').text(response.transactions.length);
+      },
+      error: function(error) {
+        $('#pending-transactions').text('Error loading');
+        console.log(error);
+      }
+    });
+  });
+</script>
+{% endblock %} 

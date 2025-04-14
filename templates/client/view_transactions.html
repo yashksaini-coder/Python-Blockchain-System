@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}View Transactions{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-12 text-center">
+    <h1>View Transactions</h1>
+    <hr />
+  </div>
+
+  <div class="col-lg-12">
+    <div class="card">
+      <div class="card-header bg-info text-white">
+        <h4>Blockchain Explorer</h4>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info">
+          <p>This page connects to the blockchain to show all transactions in the chain.</p>
+        </div>
+        
+        <div class="mb-3">
+          <button id="refresh_blockchain" class="btn btn-primary">
+            <i class="fa fa-refresh" aria-hidden="true"></i> Refresh Blockchain Data
+          </button>
+        </div>
+        
+        <div class="table-responsive">
+          <table id="transactions_table" class="table table-striped">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Sender</th>
+                <th>Recipient</th>
+                <th>Amount</th>
+                <th>Timestamp</th>
+                <th>Block</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  $(function() {
+    // Load transactions from the blockchain
+    function loadTransactions() {
+      $.ajax({
+        url: "/blockchain/chain",
+        type: "GET",
+        success: function(response) {
+          let transactions = [];
+          let count = 1;
+          
+          // Clear the table
+          $("#transactions_table tbody").empty();
+          
+          // Process each block in the chain
+          for (let i = 0; i < response.chain.length; i++) {
+            const block = response.chain[i];
+            const blockIndex = block.index;
+            const timestamp = new Date(block.timestamp * 1000).toLocaleString();
+            
+            // Process each transaction in the block
+            for (let j = 0; j < block.transactions.length; j++) {
+              const tx = block.transactions[j];
+              
+              // Create a new row
+              let row = $("<tr>");
+              let indexCell = $("<td>").text(count);
+              let senderCell = $("<td>").text(tx.sender_address || tx.sender);
+              let recipientCell = $("<td>").text(tx.recipient_address || tx.recipient);
+              let amountCell = $("<td>").text(tx.value || tx.amount);
+              let timestampCell = $("<td>").text(timestamp);
+              let blockCell = $("<td>").text(blockIndex);
+              
+              // Add the cells to the row
+              row.append(indexCell, senderCell, recipientCell, amountCell, timestampCell, blockCell);
+              
+              // Add the row to the table
+              $("#transactions_table tbody").append(row);
+              
+              count++;
+            }
+          }
+        },
+        error: function(error) {
+          console.log(error);
+          alert("Error loading blockchain data: " + error.responseText);
+        }
+      });
+    }
+    
+    // Load transactions on page load
+    loadTransactions();
+    
+    // Refresh button event handler
+    $("#refresh_blockchain").click(function() {
+      loadTransactions();
+    });
+  });
+</script>
+{% endblock %}
